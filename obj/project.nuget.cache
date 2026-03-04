@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "19FsGxLud1c=",
+  "success": true,
+  "projectFilePath": "/Users/mac/Downloads/CnssProxy/CnssProxy.csproj",
+  "expectedPackageFiles": [
+    "/Users/mac/.nuget/packages/microsoft.netcore.app.ref/8.0.22/microsoft.netcore.app.ref.8.0.22.nupkg.sha512",
+    "/Users/mac/.nuget/packages/microsoft.aspnetcore.app.ref/8.0.22/microsoft.aspnetcore.app.ref.8.0.22.nupkg.sha512",
+    "/Users/mac/.nuget/packages/microsoft.netcore.app.host.osx-arm64/8.0.22/microsoft.netcore.app.host.osx-arm64.8.0.22.nupkg.sha512"
+  ],
+  "logs": []
+}
