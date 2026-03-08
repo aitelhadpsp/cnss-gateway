@@ -1,0 +1,15 @@
+services:
+  cnss-proxy:
+    image: neurodental/cnss-proxy:latest
+    container_name: cnss-proxy
+    restart: unless-stopped
+    ports:
+      - "5050:5050"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5050
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

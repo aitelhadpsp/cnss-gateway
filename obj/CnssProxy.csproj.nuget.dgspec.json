@@ -43,6 +43,28 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
+          "dependencies": {
+            "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "MongoDB.Driver": {
+              "target": "Package",
+              "version": "[3.1.0, )"
+            },
+            "Swashbuckle.AspNetCore": {
+              "target": "Package",
+              "version": "[6.9.0, )"
+            },
+            "VaultSharp": {
+              "target": "Package",
+              "version": "[1.17.5.1, )"
+            },
+            "VaultSharp.Extensions.Configuration": {
+              "target": "Package",
+              "version": "[1.1.4, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",

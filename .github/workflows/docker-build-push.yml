@@ -34,7 +34,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/cnss-proxy
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/cnss-gateway
           tags: |
             type=ref,event=branch
             type=semver,pattern={{version}}

@@ -5,4 +5,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>CnssProxy</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MongoDB.Driver" Version="3.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
+    <PackageReference Include="VaultSharp" Version="1.17.5.1" />
+    <PackageReference Include="VaultSharp.Extensions.Configuration" Version="1.1.4" />
+  </ItemGroup>
 </Project>

@@ -1,0 +1,2515 @@
+{
+  "info": {
+    "_postman_id": "a92009ee-789c-4a47-a485-1ab227a8e545",
+    "name": "Feuille de Soins Electronique CNSS V2.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "34054195",
+    "_collection_link": "https://go.postman.co/collection/34054195-a92009ee-789c-4a47-a485-1ab227a8e545?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Authentification",
+      "item": [
+        {
+          "name": "authenticate",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "packages": {},
+                "exec": [
+                  "// No pre-request needed for authenticate"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "packages": {},
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    const body = pm.response.json();",
+                  "    const token = body.accessToken || body.access_token || body.token;",
+                  "    if (token) {",
+                  "        pm.globals.set('accessToken', token);",
+                  "        pm.collectionVariables.set('accessToken', token);",
+                  "        console.log('[Auth] Access token saved globally ✓');",
+                  "    } else {",
+                  "        console.warn('[Auth] Response OK but no token field found:', JSON.stringify(body));",
+                  "    }",
+                  "    const refresh = body.refreshToken || body.refresh_token;",
+                  "    if (refresh) {",
+                  "        pm.globals.set('refreshToken', refresh);",
+                  "        pm.collectionVariables.set('refreshToken', refresh);",
+                  "        console.log('[Auth] Refresh token saved ✓');",
+                  "    }",
+                  "} else {",
+                  "    console.error('[Auth] Authentication failed – status:', pm.response.code);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"inpe\": \"{{AUTH_INPE}}\",\n    \"motDePasse\": \"{{AUTH_PASSWORD}}\",\n    \"clientId\": \"{{AUTH_CLIENT_ID}}\",\n    \"secretKey\": \"{{AUTH_SECRET_KEY}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{LINK}}adhesion/auth/authenticate",
+              "host": [
+                "{{LINK}}adhesion"
+              ],
+              "path": [
+                "auth",
+                "authenticate"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Renouvellemnt Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"clientId\": \"editeur-test\",\n    \"secretKey\": \"**********\",\n    \"refreshToken\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{LINK}}adhesion/auth/refresh-token",
+              "host": [
+                "{{LINK}}adhesion"
+              ],
+              "path": [
+                "auth",
+                "refresh-token"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Vérification OTP",
+      "item": [
+        {
+          "name": "Vérifier OTP",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-OTP",
+                "value": "123456",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"{{OTP_USERNAME}}\",\n    \"otp\": \"{{OTP_CODE}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{LINK}}gw/otp/verify",
+              "host": [
+                "{{LINK}}gw"
+              ],
+              "path": [
+                "otp",
+                "verify"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "packages": {},
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    const body = pm.response.json();",
+                  "    const token = body.accessToken || body.access_token || body.token;",
+                  "    if (token) {",
+                  "        pm.globals.set('accessToken', token);",
+                  "        pm.collectionVariables.set('accessToken', token);",
+                  "        console.log('[OTP] New token from OTP verify saved globally ✓');",
+                  "    } else {",
+                  "        console.log('[OTP] OTP verified ✓ (no new token issued)');",
+                  "    }",
+                  "} else {",
+                  "    console.error('[OTP] OTP verification failed – status:', pm.response.code);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Renvoyer OTP",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-OTP",
+                "value": "123456",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{LINK}}gw/otp/resend",
+              "host": [
+                "{{LINK}}gw"
+              ],
+              "path": [
+                "otp",
+                "resend"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Feuille de Soins Électronique API",
+      "item": [
+        {
+          "name": "Signaletique",
+          "item": [
+            {
+              "name": "Signalétique assuré",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "",
+                    "type": "text",
+                    "disabled": true
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"numeroImmatriculation\": \"1032222845\",\n    \"identifiant\": \"\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{LINK}}prescription/patient/signaletique",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "patient",
+                    "signaletique"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "FSE",
+          "item": [
+            {
+              "name": "Vérification FSE",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"inpeEtablissement\": null,\n  \"inpeMedecin\": \"678192341\",\n  \"patient\": {\n    \"idPatient\": 5,\n    \"numeroImmatriculation\": \"1032222845\",\n    \"numeroIndividu\": \"307004338\",\n    \"nom\": \"NAJI\",\n    \"prenom\": \"Jawad\",\n    \"genre\": \"F\",\n    \"dateNaissance\": \"20/12/1995\"\n  },\n  \"diagnostic\": {\n    \"pathologies\": [\n      {\n        \"codePathologie\": \"DA09.6\",\n        \"description\": \"Abcès périapical\",\n        \"provisoire\": false\n      }\n    ],\n    \"diagnostic\": \"Diagnostic dentaire - Rapport final:N°23 -  du 2025-11-22 15:45:46+00:00 \"\n  },\n  \"estAccident\": false,\n  \"typeAccident\": null,\n  \"commentaire\": \"Dossier - NAJI Jawad\",\n  \"dateVisite\": \"18/01/2026 15:45:46\",\n  \"constantes\": [\n    {\n      \"nom\": \"POIDS\",\n      \"valeur\": \"75.0 kg\"\n    },\n    {\n      \"nom\": \"TEMP\",\n      \"valeur\": \"37.0 °C\"\n    }\n  ],\n  \"ordonnances\": [\n    {\n      \"dateOrdonnance\": \"18/01/2026 15:45:30\",\n      \"listMedicament\": [\n        {\n          \"code\": \"6118001081240\",\n          \"libelle\": \"MYTELASE\",\n          \"dosage\": \"2 fois par jour matin et soir après repas\",\n          \"forme\": \"COMPRIME SECABLE\",\n          \"uniteDosage\": \"10\",\n          \"commentaire\": \"1 comprimé par jour pendant 6 jours de 100 mg (Le matin)\",\n          \"traitementContinu\": false,\n          \"motif\": \"Traitement dentaire\",\n          \"dureeTraitement\": 7,\n          \"uniteDureeTraitement\": \"M\",\n          \"nombrePrise\": 2,\n          \"uniteNombrePrise\": \"S\"\n        }\n      ]\n    }\n  ],\n  \"actesAdresses\": [\n    {\n      \"code\": \"B50\",\n      \"libelle\": \"Cholestérol HDL\",\n      \"localisation\": \"ABC\",\n      \"categorieActe\": \"LAB\",\n      \"nombreActes\": 1,\n      \"commentaire\": \"Rien à signaler\",\n      \"motif\": \"Soins dentaires\",\n      \"dentaireCodes\": [\n        {\n          \"code\": \"13\",\n          \"type\": \"DA\",\n          \"faces\": [\n            {\n              \"face\": \"string\"\n            }\n          ]\n        }\n      ]\n    }\n  ],\n  \"acteRealises\": [\n    {\n      \"code\": \"D 5\",\n      \"libelle\": \"Analyse céphalométrique\",\n      \"localisation\": \"Salle d'examen 1\",\n      \"categorieActe\": \"ATM\",\n      \"nombreActes\": 1,\n      \"commentaire\": \"Bonne visibilité\",\n      \"motif\": \"Soins dentaires\",\n      \"prixUnitaire\": 87.0,\n      \"dateRealisation\": \"22/11/2025 15:45:30\",\n      \"typePeriode\": \"string\",\n      \"nombrePeriode\": 0,\n      \"radioAvant\": true,\n      \"radioApres\": true\n    },\n    {\n      \"code\": \"IMG001\",\n      \"libelle\": \"Radio\",\n      \"localisation\": \"Salle d'examen 1\",\n      \"categorieActe\": \"RAD\",\n      \"isEP\": false,\n      \"nombreActes\": 2,\n      \"commentaire\": \"Bonne visibilité\",\n      \"motif\": \"Douleur localisée\",\n      \"prixUnitaire\": 250.0,\n      \"dateRealisation\": \"15/01/2026 10:00:00\",\n      \"typePeriode\": \"string\",\n      \"nombrePeriode\": 0,\n      \"radioAvant\": true,\n      \"radioApres\": true\n    }\n  ],\n  \"dispositifMedicaux\": [\n    {\n      \"code\": \"AA120204\",\n      \"libelle\": \"Appareils générateurs d'aérosols pour le traitement des pathologies réspiratoires\",\n      \"nombre\": 1,\n      \"commentaire\": \"Appliqué après échographie\",\n      \"motif\": \"Prévention\"\n    }\n  ]\n}\n",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{LINK}}prescription/fse/verifierFse",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "fse",
+                    "verifierFse"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Déclaration FSE",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "",
+                    "value": "",
+                    "type": "text",
+                    "disabled": true
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"inpeEtablissement\": null,\n  \"inpeMedecin\": \"678192341\",\n  \"patient\": {\n    \"idPatient\": 5,\n    \"numeroImmatriculation\": \"1032222845\",\n    \"numeroIndividu\": \"307004338\",\n    \"nom\": \"NAJI\",\n    \"prenom\": \"Jawad\",\n    \"genre\": \"F\",\n    \"dateNaissance\": \"20/12/1995\"\n  },\n  \"diagnostic\": {\n    \"pathologies\": [\n      {\n        \"codePathologie\": \"DA09.6\",\n        \"description\": \"Abcès périapical\",\n        \"provisoire\": false\n      }\n    ],\n    \"diagnostic\": \"Diagnostic dentaire - Rapport final:N°23 -  du 2025-11-22 15:45:46+00:00 \"\n  },\n  \"estAccident\": false,\n  \"typeAccident\": null,\n  \"commentaire\": \"Dossier - NAJI Jawad\",\n  \"dateVisite\": \"18/01/2026 15:45:46\",\n  \"constantes\": [\n    {\n      \"nom\": \"POIDS\",\n      \"valeur\": \"75.0 kg\"\n    },\n    {\n      \"nom\": \"TEMP\",\n      \"valeur\": \"37.0 °C\"\n    }\n  ],\n  \"ordonnances\": [\n    {\n      \"dateOrdonnance\": \"18/01/2026 15:45:30\",\n      \"listMedicament\": [\n        {\n          \"code\": \"6118001081240\",\n          \"libelle\": \"MYTELASE\",\n          \"dosage\": \"2 fois par jour matin et soir après repas\",\n          \"forme\": \"COMPRIME SECABLE\",\n          \"uniteDosage\": \"10\",\n          \"commentaire\": \"1 comprimé par jour pendant 6 jours de 100 mg (Le matin)\",\n          \"traitementContinu\": false,\n          \"motif\": \"Traitement dentaire\",\n          \"dureeTraitement\": 7,\n          \"uniteDureeTraitement\": \"M\",\n          \"nombrePrise\": 2,\n          \"uniteNombrePrise\": \"S\"\n        }\n      ]\n    }\n  ],\n  \"actesAdresses\": [\n    {\n      \"code\": \"B50\",\n      \"libelle\": \"Cholestérol HDL\",\n      \"localisation\": \"ABC\",\n      \"categorieActe\": \"LAB\",\n      \"nombreActes\": 1,\n      \"commentaire\": \"Rien à signaler\",\n      \"motif\": \"Soins dentaires\",\n      \"dentaireCodes\": [\n        {\n          \"code\": \"13\",\n          \"type\": \"DA\",\n          \"faces\": [\n            {\n              \"face\": \"string\"\n            }\n          ]\n        }\n      ]\n    }\n  ],\n  \"acteRealises\": [\n    {\n      \"code\": \"D 5\",\n      \"libelle\": \"Analyse céphalométrique\",\n      \"localisation\": \"Salle d'examen 1\",\n      \"categorieActe\": \"ATM\",\n      \"nombreActes\": 1,\n      \"commentaire\": \"Bonne visibilité\",\n      \"motif\": \"Soins dentaires\",\n      \"prixUnitaire\": 87.0,\n      \"dateRealisation\": \"22/11/2025 15:45:30\",\n      \"typePeriode\": \"string\",\n      \"nombrePeriode\": 0,\n      \"radioAvant\": true,\n      \"radioApres\": true\n    },\n    {\n      \"code\": \"IMG001\",\n      \"libelle\": \"Radio\",\n      \"localisation\": \"Salle d'examen 1\",\n      \"categorieActe\": \"RAD\",\n      \"isEP\": false,\n      \"nombreActes\": 2,\n      \"commentaire\": \"Bonne visibilité\",\n      \"motif\": \"Douleur localisée\",\n      \"prixUnitaire\": 250.0,\n      \"dateRealisation\": \"15/01/2026 10:00:00\",\n      \"typePeriode\": \"string\",\n      \"nombrePeriode\": 0,\n      \"radioAvant\": true,\n      \"radioApres\": true\n    }\n  ],\n  \"dispositifMedicaux\": [\n    {\n      \"code\": \"AA120204\",\n      \"libelle\": \"Appareils générateurs d'aérosols pour le traitement des pathologies réspiratoires\",\n      \"nombre\": 1,\n      \"commentaire\": \"Appliqué après échographie\",\n      \"motif\": \"Prévention\"\n    }\n  ]\n}\n",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{LINK}}prescription/fse/creerFse",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "fse",
+                    "creerFse"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Détails FSE",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{LINK}}prescription/fse/detailFse/FSE268084519183",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "fse",
+                    "detailFse",
+                    "FSE268084519183"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Dispensation Pharmacie",
+          "item": [
+            {
+              "name": "Dispensation",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"numeroFse\": \"FSE268084519183\",\r\n    \"prescriptionPharmacies\": [\r\n        {\r\n            \"prescriptionPharmacieId\": \"1366\",\r\n            \"dispensationOfficines\": [\r\n                {\r\n                    \"codeMedicament\": \"MED123\",\r\n                    \"nombre\": 1,\r\n                    \"prixUnitaire\": 15,\r\n                    \"excecutionPartielle\": false,\r\n                    \"isMNR\": true\r\n                }\r\n            ]\r\n        }\r\n    ]\r\n}"
+                },
+                "url": {
+                  "raw": "{{LINK}}prescription/prescriptionPharmacie/dispenser",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "prescriptionPharmacie",
+                    "dispenser"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Liste prescriptions",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{LINK}}prescription/prescriptionPharmacie/FSE268084519183",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "prescriptionPharmacie",
+                    "FSE268084519183"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Modification prescription Pharmacie (Réservée aux prescripteurs)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"id\": 1555, // Id prescription retourné par l'API details FSE '/fse/detailFse/{numfSE}'\n    \"code\": \"\",\n    \"libelle\": \"SAFLU\",\n    \"dosage\": \"50\",\n    \"forme\": \"SUSPENSION POUR INHALATION\",\n    \"uniteDosage\": \"mg\",\n    \"dureeTraitement\": 7, // nombreJour\n    \"uniteDureeTraitement\": \"J\", //J,S,M\n    \"nombrePrise\": 2, // uniteParJour\n    \"uniteNombrePrise\": \"J\", //J,S,M\n    \"commentaire\": \"Commentaire medecin modifié\",\n    \"traitementContinu\": false\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{LINK}}prescription/prescriptionPharmacie/modifier",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "prescriptionPharmacie",
+                    "modifier"
+                  ]
+                },
+                "description": "Permet de modifier une prescription pharmacie par le prescripteur."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Dispositifs Medicaux",
+          "item": [
+            {
+              "name": "Liste dispositif",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{LINK}}prescription/prescriptionDispositifMedical/FSE268084519183",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "prescriptionDispositifMedical",
+                    "FSE268084519183"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Exécution disposifif",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"id\": 690,\r\n    \"prix\": 15,\r\n    \"nombre\": 1,\r\n    \"numeroFse\": \"2500000001326\",\r\n    \"code\": \"\",\r\n    \"inpe\": \"1111111\", // [Requis pour les cliniques et établissements]\r\n    \"commentaire\": \"\"\r\n}"
+                },
+                "url": {
+                  "raw": "{{LINK}}prescription/prescriptionDispositifMedical/executer",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "prescriptionDispositifMedical",
+                    "executer"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Charger fichiers",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "documentUpload",
+                      "value": "{\"id\":1843, \"numeroFse\": \"2500000001594\"}",
+                      "type": "text",
+                      "uuid": "23418db8-a855-4dea-913f-964e7bd9806c"
+                    },
+                    {
+                      "key": "files",
+                      "value": "",
+                      "type": "text",
+                      "uuid": "dace3398-0d65-4057-b66d-41338c58e7a3"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{LINK}}prescription/prescriptionDispositifMedical/charger-fichier",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "prescriptionDispositifMedical",
+                    "charger-fichier"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Modification prescription dispositif (Réservée aux prescripteurs)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"id\": 808, //Id prescription retourné par l'API details FSE '/fse/detailFse/{numfSE}'\n    \"code\": \"AA120204\",\n    \"libelle\": \"Appareils générateurs d'aérosols pour le traitement des pathologies réspiratoires\",\n    \"nombre\": 1,\n    \"commentaire\": \"Commentaire modifié\",\n    \"motif\": \"RAS\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{LINK}}prescription/prescriptionDispositifMedical/modifier",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "prescriptionDispositifMedical",
+                    "modifier"
+                  ]
+                },
+                "description": "Permet de modifier une prescription de dispositif par le prescripteur."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Actes",
+          "item": [
+            {
+              "name": "Liste acte",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{LINK}}prescription/prescriptionActe/FSE268084519183",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "prescriptionActe",
+                    "FSE268084519183"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Exécution acte",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"id\": 2934,\r\n    \"nombre\": 1,\r\n    \"prix\": 500,\r\n    \"numeroFse\": \"FSE268084519183\",\r\n    \"code\": \"6231457898\",\r\n    \"inpe\": \"111111\", // [Requis pour les cliniques et établissements]\r\n    \"commentaire\": \"\",\r\n    \"prescriptionActeSupplements\": [\r\n        {\r\n            \"prix\": 0.1,\r\n            \"nombre\": 0,\r\n            \"code\": \"string\"\r\n        }\r\n    ]\r\n}"
+                },
+                "url": {
+                  "raw": "{{LINK}}prescription/prescriptionActe/executer",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "prescriptionActe",
+                    "executer"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Charger fichiers",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "documentUpload",
+                      "value": "{\"id\":1843, \"numeroFse\": \"2500000001594\"}",
+                      "type": "text",
+                      "uuid": "e880d39d-95b8-471f-ad65-22208be7bbf8"
+                    },
+                    {
+                      "key": "files",
+                      "type": "file",
+                      "uuid": "3a8efecd-cfcb-4531-b52c-e61cf5e7c92b",
+                      "src": "/C:/Users/pc netopia/Desktop/CNSS_FSE_V3.pdf"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{LINK}}prescription/prescriptionActe/charger-fichier",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "prescriptionActe",
+                    "charger-fichier"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Modification prescription acte (Réservée aux prescripteurs)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"id\": 7941, //Id prescription retourné par l'API details FSE \"/fse/detailFse/{numfSE}\"\n  \"codeActe\": \"AMK\",\n  \"libelleActe\": \"ACTES DE KINE\",\n  \"categorieActe\": \"RAD\",\n  \"nombreActes\": 2,\n  \"commentaire\": \"Commentaire Medecin\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{LINK}}prescription/prescriptionActe/modifier",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "prescriptionActe",
+                    "modifier"
+                  ]
+                },
+                "description": "Permet de modifier une prescription d'acte par le prescripteur."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Complément d'information",
+          "item": [
+            {
+              "name": "Envoi complément",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"numeroFse\": \"2500000001344\",\r\n    \"demandesComplement\" : [\r\n        {\r\n            \"id\" : 1,\r\n            \"reponse\" : \"test\"\r\n        }\r\n    ]\r\n}"
+                },
+                "url": {
+                  "raw": "{{LINK}}prescription/fse/demandeComplement/reponse",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "fse",
+                    "demandeComplement",
+                    "reponse"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Charger_fichiers",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "documentUpload",
+                      "value": "{\"id\": 3789, \"numeroFse\": \"2500000001594\"}",
+                      "type": "text",
+                      "uuid": "cada0822-fa74-4153-b66a-7f2d5f564a3c"
+                    },
+                    {
+                      "key": "files",
+                      "type": "file",
+                      "uuid": "04f97f36-a6b5-4bda-b86c-530042a60505",
+                      "src": "/C:/Users/pc netopia/Desktop/CNSS_FSE_V3.pdf"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{LINK}}prescription/fse/demandeComplement/charger-fichier",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "fse",
+                    "demandeComplement",
+                    "charger-fichier"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Liste des compléments",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{LINK}}prescription/fse/demandeComplement",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "fse",
+                    "demandeComplement"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Rejet",
+          "item": [
+            {
+              "name": "Envoi justificatof rejet",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"numeroFse\": \"2500000001326\",\r\n    \"demandesComplement\": [\r\n        {\r\n            \"id\" : 1,\r\n            \"reponse\": \"testttt\"\r\n        }\r\n    ]\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{LINK}}prescription/fse/rejet/reponse",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "fse",
+                    "rejet",
+                    "reponse"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Charger_fichiers",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "documentUpload",
+                      "value": "{\"id\":18, \"numeroFse\": \"2500000001594\"}",
+                      "type": "text",
+                      "uuid": "e38555ed-ed7a-4f3a-a0c1-b512c90e70bf"
+                    },
+                    {
+                      "key": "files",
+                      "value": "",
+                      "type": "text",
+                      "uuid": "51e00cce-7e20-454a-ad87-6cb3f657a03f"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{LINK}}prescription/fse/rejet/charger-fichier",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "fse",
+                    "rejet",
+                    "charger-fichier"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Liste_des_rejets",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{LINK}}prescription/fse/rejet",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "fse",
+                    "rejet"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Référentiels",
+          "item": [
+            {
+              "name": "Recherche médicaments",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"value\" : \"les\"\r\n}"
+                },
+                "url": {
+                  "raw": "{{LINK}}prescription/referentiel/medicaments",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "referentiel",
+                    "medicaments"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Recherche dispositifs médicaux",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"value\" : \"DG110501\"\r\n}"
+                },
+                "url": {
+                  "raw": "{{LINK}}prescription/referentiel/dispositifMedicaux",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "referentiel",
+                    "dispositifMedicaux"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "referentiel_acte",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"value\" : \"D625\",\r\n    \"codeTypeActe\" : \"\"\r\n}"
+                },
+                "url": {
+                  "raw": "{{LINK}}prescription/referentiel/actes",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "referentiel",
+                    "actes"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Recherche ALD/ALC",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"value\" : \"les\",\r\n    \"type\": \"string\"\r\n}"
+                },
+                "url": {
+                  "raw": "{{LINK}}prescription/referentiel/alds",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "referentiel",
+                    "alds"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Recherche Medicaments TPM",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"value\" : \"\"\r\n}"
+                },
+                "url": {
+                  "raw": "{{LINK}}prescription/referentiel/medicamentsTPM",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "referentiel",
+                    "medicamentsTPM"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Résultats attendus",
+          "item": [
+            {
+              "name": "Liste des résultats attendus",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "",
+                    "type": "text",
+                    "disabled": true
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"size\": 0,\n    \"page\": 0,\n    \"numeroImmatriculation\": \"string\",\n    \"numeroFse\": \"string\",\n    \"dateDebut\": \"12/01/2026 10:00:00\",\n    \"dateFin\": \"15/01/2026 10:00:00\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{LINK}}prescription/resultatAttendu/rechercher",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "resultatAttendu",
+                    "rechercher"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Envoyer les résultats atendus",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "",
+                    "type": "text",
+                    "disabled": true
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "resultatAttenduExecution",
+                      "value": "{\"id\":18, \"commentaire\": \"test\"}",
+                      "type": "text",
+                      "uuid": "13f0272b-ceb4-4d67-a316-1047241a1f16"
+                    },
+                    {
+                      "key": "files",
+                      "type": "file",
+                      "uuid": "29bf77b7-a8fb-4355-b7db-7e689d6768fc",
+                      "value": null
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{LINK}}prescription/resultatAttendu/executer",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "resultatAttendu",
+                    "executer"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Récuprer le nombre total des résultats atendus",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "",
+                    "type": "text",
+                    "disabled": true
+                  }
+                ],
+                "url": {
+                  "raw": "{{LINK}}prescription/resultatAttendu/nombreResultatAttendu",
+                  "host": [
+                    "{{LINK}}prescription"
+                  ],
+                  "path": [
+                    "resultatAttendu",
+                    "nombreResultatAttendu"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Demande ALD/ALD",
+      "item": [
+        {
+          "name": "Déclaration ALD/ALC",
+          "item": [
+            {
+              "name": "Déclaration ALD",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"numeroImmatriculation\": \"1032222845\",\r\n    \"numeroIndividu\": \"307004338\",\r\n    \"nom\": \"NAJI\",\r\n    \"prenom\": \"Jawad\",\r\n    \"inpeMedecin\": \"897651117\",\r\n    \"inpeEtablissement\": null,\r\n    \"code\": \"E026\",\r\n    \"codePathologie\": \"B21.2\",\r\n    \"libelle\": \"TEST\",\r\n    \"libellePathologie\": \"Test\",\r\n    \"commentaire\": \"TESTT\",\r\n    \"dateDebut\": \"24/08/2025 12:00:00\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{LINK}}ald/ald/declarer",
+                  "host": [
+                    "{{LINK}}ald"
+                  ],
+                  "path": [
+                    "ald",
+                    "declarer"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Charger_fichiers",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "documentUpload",
+                      "value": "{\"id\":1, \"numeroALD\": \"ALD-2500000000081\"}",
+                      "type": "text",
+                      "uuid": "a1ff0fd8-99ba-4045-a847-7054ed269122",
+                      "contentType": "application/json"
+                    },
+                    {
+                      "key": "files",
+                      "type": "file",
+                      "uuid": "b127fc7a-4e91-4a58-8eff-55346497f714",
+                      "src": "/C:/Users/pc netopia/Desktop/CNSS_FSE_V2.pdf"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{LINK}}ald/ald/charger-fichier",
+                  "host": [
+                    "{{LINK}}ald"
+                  ],
+                  "path": [
+                    "ald",
+                    "charger-fichier"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Compléments",
+          "item": [
+            {
+              "name": "Envoi_complément",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"numeroAld\": \"string\",\r\n    \"demandesComplement\": [\r\n        {\r\n            \"id\": 0,\r\n            \"reponse\": \"string\"\r\n        }\r\n    ]\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{LINK}}ald/ald/demandeComplement/reponse",
+                  "host": [
+                    "{{LINK}}ald"
+                  ],
+                  "path": [
+                    "ald",
+                    "demandeComplement",
+                    "reponse"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Charger_fichiers",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "documentUpload",
+                      "value": "{\"id\":1, \"numeroALD\": \"\"}",
+                      "type": "text",
+                      "uuid": "7d441eac-0afa-4049-aff2-fa63680afb91"
+                    },
+                    {
+                      "key": "files",
+                      "type": "file",
+                      "uuid": "7e816a26-f87a-40b2-b5d7-7f6945321eab",
+                      "value": null
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{LINK}}ald/ald/demandeComplement/charger-fichier",
+                  "host": [
+                    "{{LINK}}ald"
+                  ],
+                  "path": [
+                    "ald",
+                    "demandeComplement",
+                    "charger-fichier"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Liste_des_compléments",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"numeroAld\" :\"\",\r\n    \"demandesComplement\" : {\r\n        \r\n        \"id\" : \"\",\r\n        \"reponse\" : \"\"\r\n\r\n    }\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{LINK}}ald/ald/demandeComplement",
+                  "host": [
+                    "{{LINK}}ald"
+                  ],
+                  "path": [
+                    "ald",
+                    "demandeComplement"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Rejets",
+          "item": [
+            {
+              "name": "Envoi_justificatif_rejet",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"numeroALD\": \"\",\r\n    \"demandesComplement\": [\r\n        {\r\n            \"id\": \"\",\r\n            \"reponse\": \"\"\r\n        }\r\n    ]\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{LINK}}ald/ald/rejet/reponse",
+                  "host": [
+                    "{{LINK}}ald"
+                  ],
+                  "path": [
+                    "ald",
+                    "rejet",
+                    "reponse"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Charger_fichiers",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "documentUpload",
+                      "value": "{\"id\":1843, \"numeroALD\": \"\"}",
+                      "type": "text",
+                      "uuid": "4e1dd7f7-d1b9-4910-b638-5756b7645aa7"
+                    },
+                    {
+                      "key": "files",
+                      "type": "file",
+                      "uuid": "e4b69ba9-d5b7-46e8-a468-f2fd74125938",
+                      "value": null
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{LINK}}ald/ald/rejet/charger-fichier",
+                  "host": [
+                    "{{LINK}}ald"
+                  ],
+                  "path": [
+                    "ald",
+                    "rejet",
+                    "charger-fichier"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Liste des rejets",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{LINK}}ald/ald/rejet",
+                  "host": [
+                    "{{LINK}}ald"
+                  ],
+                  "path": [
+                    "ald",
+                    "rejet"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Demande Entente préalable (EP)",
+      "item": [
+        {
+          "name": "Demande EP",
+          "item": [
+            {
+              "name": "Demande_EP",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"numeroFSE\": null,\r\n    \"numeroImmatriculation\": \"1032222845\",\r\n    \"numeroIndividu\": \"307004338\",\r\n    \"nom\": \"NAJI\",\r\n    \"prenom\": \"Jawad\",\r\n    \"inpeMedecin\": \"897651117\",\r\n    \"inpeEtablissement\": null,\r\n    \"dateDemande\": \"19/01/2025 12:00:00\",\r\n    \"dentaire\": false,\r\n    \"listEP\": [\r\n        {\r\n            \"code\": \"DJ100008\",\r\n            \"type\": \"radiologique\",\r\n            \"commentaire\": \"\",\r\n            \"dateSoin\": \"10/08/2025 12:00:00\",\r\n            \"quantite\": 1,\r\n            \"montant\": 100,\r\n            \"localisation\": \"\",\r\n            \"typePeriode\": \"\", //cas dentaire -->  typePeriode => '1' : Année, '2' : Mois, '3' : Semestre, '4' : trimestre; pour les actes dentaires\t\r\n            \"nombrePeriode\": 0 //cas dentaire\r\n            \r\n        }\r\n    ]\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{LINK}}ep/ep/demander",
+                  "host": [
+                    "{{LINK}}ep"
+                  ],
+                  "path": [
+                    "ep",
+                    "demander"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Charger_fichiers",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "documentUpload",
+                      "value": "{\"numeroEP\": \"250000\"}",
+                      "type": "text",
+                      "uuid": "e977f701-05b4-4447-9936-d216595441ff"
+                    },
+                    {
+                      "key": "files",
+                      "type": "file",
+                      "uuid": "27c95b63-3680-4ddc-aed9-141fa392d543",
+                      "value": null
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{LINK}}ep/ep/charger-fichier",
+                  "host": [
+                    "{{LINK}}ep"
+                  ],
+                  "path": [
+                    "ep",
+                    "charger-fichier"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Complément d'information",
+          "item": [
+            {
+              "name": "Envoi_complément",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"numeroEP\": \"EP-2500000000064\",\r\n    \"demandesComplement\": [\r\n        {\r\n            \"id\": 1,\r\n            \"reponse\": \"Test complement\"\r\n        }\r\n    ]\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{LINK}}ep/ep/demandeComplement/reponse",
+                  "host": [
+                    "{{LINK}}ep"
+                  ],
+                  "path": [
+                    "ep",
+                    "demandeComplement",
+                    "reponse"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Charger_fichiers",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "documentUpload",
+                      "value": "{\"numeroEP\": \"250000\"}",
+                      "type": "text",
+                      "uuid": "7a4415d4-5760-4b9e-ae83-80b9a1f65666"
+                    },
+                    {
+                      "key": "files",
+                      "type": "file",
+                      "uuid": "bbc761e5-4df1-496e-bdb8-a423101bdf69",
+                      "value": null
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{LINK}}ep/ep/demandeComplement/charger-fichier",
+                  "host": [
+                    "{{LINK}}ep"
+                  ],
+                  "path": [
+                    "ep",
+                    "demandeComplement",
+                    "charger-fichier"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Liste_des_compléments",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{LINK}}ep/ep/demandeComplement/EP-2500000000001",
+                  "host": [
+                    "{{LINK}}ep"
+                  ],
+                  "path": [
+                    "ep",
+                    "demandeComplement",
+                    "EP-2500000000001"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Rejet",
+          "item": [
+            {
+              "name": "Envoi justificatjf rejet",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"numeroEP\": \"string\",\r\n    \"demandesComplement\": [\r\n        {\r\n            \"id\": 2,\r\n            \"reponse\": \"string\"\r\n        }\r\n    ]\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{LINK}}ep/ep/rejet/reponse",
+                  "host": [
+                    "{{LINK}}ep"
+                  ],
+                  "path": [
+                    "ep",
+                    "rejet",
+                    "reponse"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Charger_fichiers",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "documentUpload",
+                      "value": "{\"numeroEP\": \"2500000001594\"}",
+                      "type": "text",
+                      "uuid": "7b83b115-286c-4a90-b05b-7fb042da3de7"
+                    },
+                    {
+                      "key": "files",
+                      "type": "file",
+                      "uuid": "403e888e-378a-4b90-a953-1e8cc87cc8b2",
+                      "value": null
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{LINK}}ep/ep/rejet/charger-fichier",
+                  "host": [
+                    "{{LINK}}ep"
+                  ],
+                  "path": [
+                    "ep",
+                    "rejet",
+                    "charger-fichier"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Liste_des_rejets",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{LINK}}ep/ep/rejet",
+                  "host": [
+                    "{{LINK}}ep"
+                  ],
+                  "path": [
+                    "ep",
+                    "rejet"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [
+          "// ── Auto-auth guard ──────────────────────────────────────────────────────────",
+          "// Skip for the auth/otp requests themselves to avoid infinite loops",
+          "const skipPaths = [",
+          "    'adhesion/auth/authenticate',",
+          "    'adhesion/auth/refresh-token',",
+          "    'gw/otp/verify',",
+          "    'gw/otp/resend'",
+          "];",
+          "",
+          "const url = pm.request.url.toString();",
+          "const shouldSkip = skipPaths.some(p => url.includes(p));",
+          "if (shouldSkip) { return; }",
+          "",
+          "// Attach stored token to every request automatically",
+          "const token = pm.globals.get('accessToken') || pm.collectionVariables.get('accessToken');",
+          "if (token) {",
+          "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [
+          "// ── 401 Auto-retry flow ──────────────────────────────────────────────────────",
+          "const skipPaths = [",
+          "    'adhesion/auth/authenticate',",
+          "    'adhesion/auth/refresh-token',",
+          "    'gw/otp/verify',",
+          "    'gw/otp/resend'",
+          "];",
+          "",
+          "const url = pm.request.url.toString();",
+          "const shouldSkip = skipPaths.some(p => url.includes(p));",
+          "if (shouldSkip) { return; }",
+          "",
+          "if (pm.response.code === 401) {",
+          "    console.log('[Auto-Auth] Got 401 – starting authenticate → OTP → retry flow...');",
+          "",
+          "    const baseUrl   = pm.collectionVariables.get('LINK');",
+          "    const authBody  = {",
+          "        inpe:       pm.collectionVariables.get('AUTH_INPE')        || '897651117',",
+          "        motDePasse: pm.collectionVariables.get('AUTH_PASSWORD')    || '897651117@Test2025',",
+          "        clientId:   pm.collectionVariables.get('AUTH_CLIENT_ID')   || 'fse-external',",
+          "        secretKey:  pm.collectionVariables.get('AUTH_SECRET_KEY')  || 'wG5P0cUZ1dioWqhcBySEvabqZEHX0Czp'",
+          "    };",
+          "    const otpUsername = pm.collectionVariables.get('OTP_USERNAME') || authBody.inpe;",
+          "    const otpCode     = pm.collectionVariables.get('OTP_CODE')     || '111111';",
+          "",
+          "    // Step 1 – Authenticate",
+          "    pm.sendRequest({",
+          "        url: baseUrl + 'adhesion/auth/authenticate',",
+          "        method: 'POST',",
+          "        header: [{ key: 'Content-Type', value: 'application/json' }],",
+          "        body: { mode: 'raw', raw: JSON.stringify(authBody) }",
+          "    }, function (err1, res1) {",
+          "        if (err1 || res1.code >= 400) {",
+          "            console.error('[Auto-Auth] authenticate failed:', err1 || res1.status);",
+          "            return;",
+          "        }",
+          "        const body1 = res1.json();",
+          "        const newToken = body1.accessToken || body1.access_token || body1.token;",
+          "        if (!newToken) {",
+          "            console.error('[Auto-Auth] No token in authenticate response:', JSON.stringify(body1));",
+          "            return;",
+          "        }",
+          "        // Save token",
+          "        pm.globals.set('accessToken', newToken);",
+          "        pm.collectionVariables.set('accessToken', newToken);",
+          "        if (body1.refreshToken || body1.refresh_token) {",
+          "            pm.globals.set('refreshToken', body1.refreshToken || body1.refresh_token);",
+          "            pm.collectionVariables.set('refreshToken', body1.refreshToken || body1.refresh_token);",
+          "        }",
+          "        console.log('[Auto-Auth] Step 1 done – got token');",
+          "",
+          "        // Step 2 – Verify OTP",
+          "        pm.sendRequest({",
+          "            url: baseUrl + 'gw/otp/verify',",
+          "            method: 'POST',",
+          "            header: [",
+          "                { key: 'Content-Type',  value: 'application/json' },",
+          "                { key: 'Authorization', value: 'Bearer ' + newToken },",
+          "                { key: 'X-OTP',        value: otpCode }",
+          "            ],",
+          "            body: {",
+          "                mode: 'raw',",
+          "                raw: JSON.stringify({ username: otpUsername, otp: otpCode })",
+          "            }",
+          "        }, function (err2, res2) {",
+          "            if (err2 || res2.code >= 400) {",
+          "                console.warn('[Auto-Auth] OTP verify failed (continuing anyway):', err2 || res2.status);",
+          "            } else {",
+          "                // Some APIs issue a new token after OTP",
+          "                const body2 = res2.json();",
+          "                const otpToken = body2.accessToken || body2.access_token || body2.token;",
+          "                if (otpToken) {",
+          "                    pm.globals.set('accessToken', otpToken);",
+          "                    pm.collectionVariables.set('accessToken', otpToken);",
+          "                    console.log('[Auto-Auth] OTP returned a new token – updated');",
+          "                } else {",
+          "                    console.log('[Auto-Auth] Step 2 done – OTP verified');",
+          "                }",
+          "            }",
+          "            console.log('[Auto-Auth] Token saved. Re-run the last request manually (Postman cannot auto-retry from test scripts).');",
+          "        });",
+          "    });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "LINK",
+      "value": "https://sandboxfse-dev.cnss.ma/"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "AUTH_INPE",
+      "value": "897651117"
+    },
+    {
+      "key": "AUTH_PASSWORD",
+      "value": "897651117@Test2025"
+    },
+    {
+      "key": "AUTH_CLIENT_ID",
+      "value": "fse-external"
+    },
+    {
+      "key": "AUTH_SECRET_KEY",
+      "value": "wG5P0cUZ1dioWqhcBySEvabqZEHX0Czp"
+    },
+    {
+      "key": "OTP_USERNAME",
+      "value": "897651117"
+    },
+    {
+      "key": "OTP_CODE",
+      "value": "111111"
+    }
+  ]
+}
