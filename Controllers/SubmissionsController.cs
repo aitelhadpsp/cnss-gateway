@@ -58,10 +58,7 @@ public class SubmissionsController(MongoDbService db, CnssApiService cnss) : Cns
     /// Optionally filter by patientId.
     /// </summary>
     [HttpGet("submissions/stats")]
-    public async Task<IActionResult> GetStats(
-        string username,
-        [FromQuery] string? patientId = null
-    )
+    public async Task<IActionResult> GetStats(string username, [FromQuery] string? patientId = null)
     {
         var (ok, error, _) = await Guard(username);
         if (!ok)
@@ -69,30 +66,32 @@ public class SubmissionsController(MongoDbService db, CnssApiService cnss) : Cns
 
         var stats = await Db.GetStatsAsync(GetClientId(), username, patientId);
 
-        return Ok(new
-        {
-            patients = stats.Select(s => new
+        return Ok(
+            new
             {
-                appPatientId = s.AppPatientId,
-                patient = new
+                patients = stats.Select(s => new
                 {
-                    registrationNumber = s.PatientRegistrationNumber,
-                    lastName = s.PatientLastName,
-                    firstName = s.PatientFirstName,
+                    appPatientId = s.AppPatientId,
+                    patient = new
+                    {
+                        registrationNumber = s.PatientRegistrationNumber,
+                        lastName = s.PatientLastName,
+                        firstName = s.PatientFirstName,
+                    },
+                    fseCount = s.FseCount,
+                    epCount = s.EpCount,
+                    totalSubmissions = s.FseCount + s.EpCount,
+                    totalAmount = s.TotalAmount,
+                }),
+                totals = new
+                {
+                    fseCount = stats.Sum(s => s.FseCount),
+                    epCount = stats.Sum(s => s.EpCount),
+                    totalSubmissions = stats.Sum(s => s.FseCount + s.EpCount),
+                    totalAmount = stats.Sum(s => s.TotalAmount),
                 },
-                fseCount = s.FseCount,
-                epCount = s.EpCount,
-                totalSubmissions = s.FseCount + s.EpCount,
-                totalAmount = s.TotalAmount,
-            }),
-            totals = new
-            {
-                fseCount = stats.Sum(s => s.FseCount),
-                epCount = stats.Sum(s => s.EpCount),
-                totalSubmissions = stats.Sum(s => s.FseCount + s.EpCount),
-                totalAmount = stats.Sum(s => s.TotalAmount),
-            },
-        });
+            }
+        );
     }
 
     /// <summary>

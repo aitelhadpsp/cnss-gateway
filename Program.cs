@@ -181,9 +181,12 @@ app.Use(
     }
 );
 
+// Swagger must come before UseRouting so its static files (CSS/JS) are served
+// before the catch-all proxy controller endpoint is selected.
 app.UseSwagger();
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "CNSS Gateway v1"));
 
+app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

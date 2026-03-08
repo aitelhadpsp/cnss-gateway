@@ -10,6 +10,7 @@ public class MongoDbService
     private readonly IMongoCollection<CnssUser> _users;
     private readonly IMongoCollection<RequestLog> _logs;
     private readonly IMongoCollection<SubmissionRecord> _submissions;
+    private readonly IMongoCollection<ProxyConfig> _proxyConfigs;
 
     public MongoDbService(IConfiguration config)
     {
@@ -21,6 +22,7 @@ public class MongoDbService
         _users = db.GetCollection<CnssUser>("users");
         _logs = db.GetCollection<RequestLog>("request_logs");
         _submissions = db.GetCollection<SubmissionRecord>("submissions");
+        _proxyConfigs = db.GetCollection<ProxyConfig>("proxy_config");
 
         var indexKeys = Builders<CnssUser>
             .IndexKeys.Ascending(u => u.ClientId)
@@ -120,6 +122,25 @@ public class MongoDbService
             .Skip((page - 1) * limit)
             .Limit(limit)
             .ToListAsync();
+    }
+
+    public Task<ProxyConfig?> GetProxyConfigAsync() =>
+        _proxyConfigs.Find(FilterDefinition<ProxyConfig>.Empty).FirstOrDefaultAsync()!;
+
+    public Task SetProxyConfigAsync(string? upstreamBase, string? cnssClientId, string? cnssSecretKey)
+    {
+        var replacement = new ProxyConfig
+        {
+            UpstreamBase = string.IsNullOrWhiteSpace(upstreamBase) ? null : upstreamBase.TrimEnd('/'),
+            CnssClientId = string.IsNullOrWhiteSpace(cnssClientId) ? null : cnssClientId,
+            CnssSecretKey = string.IsNullOrWhiteSpace(cnssSecretKey) ? null : cnssSecretKey,
+            UpdatedAt = DateTime.UtcNow,
+        };
+        return _proxyConfigs.ReplaceOneAsync(
+            FilterDefinition<ProxyConfig>.Empty,
+            replacement,
+            new ReplaceOptions { IsUpsert = true }
+        );
     }
 
     public async Task<SubmissionTimeSeriesStats> GetTimeSeriesStatsAsync(
