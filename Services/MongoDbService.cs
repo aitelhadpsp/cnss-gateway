@@ -1,3 +1,4 @@
+using CnssProxy.Helpers;
 using CnssProxy.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -119,6 +120,97 @@ public class MongoDbService
             .Skip((page - 1) * limit)
             .Limit(limit)
             .ToListAsync();
+    }
+
+    public async Task<SubmissionTimeSeriesStats> GetTimeSeriesStatsAsync(
+        string clientId,
+        string username,
+        DateTime startDate,
+        DateTime endDate
+    )
+    {
+        var helper = new DateGroupingHelper(startDate, endDate);
+
+        var filter = Builders<SubmissionRecord>.Filter.Where(s =>
+            s.ClientId == clientId
+            && s.Username == username
+            && s.SubmittedAt >= startDate.Date
+            && s.SubmittedAt <= endDate.Date.AddDays(1).AddTicks(-1)
+        );
+
+        var records = await _submissions.Find(filter).ToListAsync();
+
+        var fseGrouped = records
+            .Where(r => r.Type == "FSE")
+            .GroupBy(r => helper.GetKey(r.SubmittedAt))
+            .ToDictionary(
+                g => g.Key,
+                g => new TimeSeriesDataPoint
+                {
+                    Count = g.Count(),
+                    Amount = g.SelectMany(r => r.Prestations)
+                        .Sum((Prestation p) => p.UnitPrice * p.Count),
+                }
+            );
+
+        var epGrouped = records
+            .Where(r => r.Type == "EP")
+            .GroupBy(r => helper.GetKey(r.SubmittedAt))
+            .ToDictionary(
+                g => g.Key,
+                g => new TimeSeriesDataPoint { Count = g.Count(), Amount = 0 }
+            );
+
+        var zero = new TimeSeriesDataPoint { Count = 0, Amount = 0 };
+
+        return new SubmissionTimeSeriesStats
+        {
+            StartDate = startDate,
+            EndDate = endDate,
+            Fse = new TimeSeriesResult
+            {
+                GroupingType = helper.Grouping.ToString(),
+                Data = helper.FillGaps(fseGrouped, zero),
+            },
+            Ep = new TimeSeriesResult
+            {
+                GroupingType = helper.Grouping.ToString(),
+                Data = helper.FillGaps(epGrouped, zero),
+            },
+        };
+    }
+
+    public async Task<List<PatientStats>> GetStatsAsync(
+        string clientId,
+        string username,
+        string? appPatientId = null
+    )
+    {
+        var filter = Builders<SubmissionRecord>.Filter.Where(s =>
+            s.ClientId == clientId && s.Username == username
+        );
+        if (appPatientId != null)
+            filter &= Builders<SubmissionRecord>.Filter.Eq(s => s.AppPatientId, appPatientId);
+
+        var records = await _submissions.Find(filter).ToListAsync();
+
+        return records
+            .GroupBy(r => r.AppPatientId)
+            .Select(g =>
+            {
+                var first = g.First();
+                return new PatientStats
+                {
+                    AppPatientId = g.Key,
+                    PatientLastName = first.PatientLastName,
+                    PatientFirstName = first.PatientFirstName,
+                    PatientRegistrationNumber = first.PatientRegistrationNumber,
+                    FseCount = g.Count(r => r.Type == "FSE"),
+                    EpCount = g.Count(r => r.Type == "EP"),
+                    TotalAmount = g.Sum(r => r.Prestations.Sum(p => p.UnitPrice * p.Count)),
+                };
+            })
+            .ToList();
     }
 
     public Task<SubmissionRecord?> GetSubmissionByNumberAsync(

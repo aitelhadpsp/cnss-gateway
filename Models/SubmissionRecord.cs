@@ -70,6 +70,37 @@ public class SubmissionRecord
     public DateTime SubmittedAt { get; set; } = DateTime.UtcNow;
 }
 
+public class TimeSeriesDataPoint
+{
+    public int Count { get; set; }
+    public decimal Amount { get; set; }
+}
+
+public class TimeSeriesResult
+{
+    public string GroupingType { get; set; } = "";
+    public Dictionary<string, TimeSeriesDataPoint> Data { get; set; } = [];
+}
+
+public class SubmissionTimeSeriesStats
+{
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
+    public TimeSeriesResult Fse { get; set; } = new();
+    public TimeSeriesResult Ep { get; set; } = new();
+}
+
+public class PatientStats
+{
+    public string AppPatientId { get; set; } = "";
+    public string? PatientLastName { get; set; }
+    public string? PatientFirstName { get; set; }
+    public string? PatientRegistrationNumber { get; set; }
+    public int FseCount { get; set; }
+    public int EpCount { get; set; }
+    public decimal TotalAmount { get; set; }
+}
+
 public class ActeFileUpload
 {
     /// <summary>App-defined key identifying what this file represents (e.g. "xray_before").</summary>

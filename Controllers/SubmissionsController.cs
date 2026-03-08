@@ -54,6 +54,48 @@ public class SubmissionsController(MongoDbService db, CnssApiService cnss) : Cns
     }
 
     /// <summary>
+    /// Get submission stats (count + total amount) grouped by patient.
+    /// Optionally filter by patientId.
+    /// </summary>
+    [HttpGet("submissions/stats")]
+    public async Task<IActionResult> GetStats(
+        string username,
+        [FromQuery] string? patientId = null
+    )
+    {
+        var (ok, error, _) = await Guard(username);
+        if (!ok)
+            return error!;
+
+        var stats = await Db.GetStatsAsync(GetClientId(), username, patientId);
+
+        return Ok(new
+        {
+            patients = stats.Select(s => new
+            {
+                appPatientId = s.AppPatientId,
+                patient = new
+                {
+                    registrationNumber = s.PatientRegistrationNumber,
+                    lastName = s.PatientLastName,
+                    firstName = s.PatientFirstName,
+                },
+                fseCount = s.FseCount,
+                epCount = s.EpCount,
+                totalSubmissions = s.FseCount + s.EpCount,
+                totalAmount = s.TotalAmount,
+            }),
+            totals = new
+            {
+                fseCount = stats.Sum(s => s.FseCount),
+                epCount = stats.Sum(s => s.EpCount),
+                totalSubmissions = stats.Sum(s => s.FseCount + s.EpCount),
+                totalAmount = stats.Sum(s => s.TotalAmount),
+            },
+        });
+    }
+
+    /// <summary>
     /// Get a specific submission from local DB by its CNSS number (e.g. "FSE268084519183").
     /// Falls back to live CNSS if not found locally.
     /// </summary>
