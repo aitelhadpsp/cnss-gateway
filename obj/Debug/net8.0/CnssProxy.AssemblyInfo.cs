@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CnssProxy")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e88c01cb493a8981867dca36dbbe37e95fdd0af9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+684b3b40b5a1803d9eb1058b718174f87fe2ba97")]
 [assembly: System.Reflection.AssemblyProductAttribute("CnssProxy")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CnssProxy")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
